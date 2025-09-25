@@ -1,10 +1,12 @@
-# 🧠 AI Medical Search Interface
+# AI Medical Search Interface
 
 A modern web interface with intelligent AI routing for the Medical Search Agent that automatically routes queries to the most appropriate medical search tools.
 
+![screenshot](https://github.com/mahisalman/Agent_search_on_Database_or_Web/blob/main/AI%20Medical%20Search%20Interface.png)
+
 ## ✨ Key Features
 
-### 🧠 **Intelligent AI Routing**
+### **Intelligent AI Routing**
 - **Automatic Query Analysis**: AI analyzes your query to determine the best routing strategy
 - **Smart Tool Selection**: 
   - 📊 **Statistics/Data/Numbers** → Database tools (heart_disease_query, cancer_query, diabetes_query)
