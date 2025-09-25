@@ -1,0 +1,13 @@
+langchain
+langchain-core
+langchain-community
+langgraph
+langchain-openai
+langchain-tavily
+pandas
+matplotlib
+seaborn
+langgraph.prebuilt
+flask
+flask-cors
+pyprojroot

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Search Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .search-section {
+            padding: 40px;
+        }
+
+        .search-form {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .tools-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .tool-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tool-option:hover {
+            background: #e3f2fd;
+            border-color: #4facfe;
+        }
+
+        .tool-option input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .tool-option.selected {
+            background: #e3f2fd;
+            border-color: #4facfe;
+        }
+
+        .tool-info {
+            flex: 1;
+        }
+
+        .tool-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .tool-description {
+            font-size: 0.9rem;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .search-button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+        }
+
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .search-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+            padding: 40px;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .results-header {
+            margin-bottom: 30px;
+        }
+
+        .results-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .results-query {
+            color: #666;
+            font-style: italic;
+        }
+
+        .results-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #4facfe;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-card.error {
+            border-left-color: #e74c3c;
+            background: #fdf2f2;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .tool-badge {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tool-badge.database {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .tool-badge.web {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .result-content {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .search-section, .results-section {
+                padding: 20px;
+            }
+            
+            .tools-selection {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Medical Search Interface</h1>
+            <p>Intelligent routing to medical databases and web resources for comprehensive health information</p>
+        </div>
+
+        <div class="search-section">
+            <form class="search-form" id="searchForm">
+                <div class="form-group">
+                    <label for="searchQuery">Medical Query:</label>
+                    <input 
+                        type="text" 
+                        id="searchQuery" 
+                        class="search-input" 
+                        placeholder="Enter your medical question (e.g., 'What are the symptoms of diabetes?', 'Show me heart disease statistics')"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="useIntelligentRouting" checked>
+                        Use AI Intelligent Routing (Recommended)
+                    </label>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 5px;">
+                        AI will automatically route statistics/data queries to database tools and definition/symptom queries to web search.
+                    </p>
+                </div>
+
+                <div class="form-group" id="manualToolsSection" style="display: none;">
+                    <label>Select Tools to Use (Manual Mode):</label>
+                    <div class="tools-selection" id="toolsSelection">
+                        <!-- Tools will be loaded dynamically -->
+                    </div>
+                </div>
+
+                <button type="submit" class="search-button" id="searchButton">
+                    Search Medical Resources
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Searching medical databases and web resources...</p>
+            </div>
+
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <h2 class="results-title">Search Results</h2>
+                <p class="results-query" id="resultsQuery"></p>
+            </div>
+            <div class="results-grid" id="resultsGrid">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let availableTools = [];
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAvailableTools();
+            setupEventListeners();
+        });
+
+        // Load available tools from the API
+        async function loadAvailableTools() {
+            try {
+                const response = await fetch('/api/tools');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    availableTools = data.tools;
+                    renderToolsSelection();
+                } else {
+                    showError('Failed to load available tools');
+                }
+            } catch (error) {
+                showError('Error loading tools: ' + error.message);
+            }
+        }
+
+        // Render tools selection checkboxes
+        function renderToolsSelection() {
+            const toolsSelection = document.getElementById('toolsSelection');
+            toolsSelection.innerHTML = '';
+
+            availableTools.forEach(tool => {
+                const toolDiv = document.createElement('div');
+                toolDiv.className = 'tool-option';
+                toolDiv.innerHTML = `
+                    <input type="checkbox" id="tool_${tool.name}" value="${tool.name}" checked>
+                    <div class="tool-info">
+                        <div class="tool-name">${formatToolName(tool.name)}</div>
+                        <div class="tool-description">${tool.description}</div>
+                    </div>
+                `;
+                toolsSelection.appendChild(toolDiv);
+            });
+
+            // Add click handlers for tool selection
+            document.querySelectorAll('.tool-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    if (e.target.type !== 'checkbox') {
+                        const checkbox = this.querySelector('input[type="checkbox"]');
+                        checkbox.checked = !checkbox.checked;
+                    }
+                    updateToolOptionStyle(this);
+                });
+
+                const checkbox = option.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', function() {
+                    updateToolOptionStyle(option);
+                });
+
+                // Initialize style
+                updateToolOptionStyle(option);
+            });
+        }
+
+        // Update tool option visual style
+        function updateToolOptionStyle(option) {
+            const checkbox = option.querySelector('input[type="checkbox"]');
+            if (checkbox.checked) {
+                option.classList.add('selected');
+            } else {
+                option.classList.remove('selected');
+            }
+        }
+
+        // Format tool name for display
+        function formatToolName(name) {
+            return name.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('searchForm').addEventListener('submit', handleSearch);
+            
+            // Handle intelligent routing checkbox
+            document.getElementById('useIntelligentRouting').addEventListener('change', function() {
+                const manualSection = document.getElementById('manualToolsSection');
+                if (this.checked) {
+                    manualSection.style.display = 'none';
+                } else {
+                    manualSection.style.display = 'block';
+                }
+            });
+        }
+
+        // Handle search form submission
+        async function handleSearch(e) {
+            e.preventDefault();
+            
+            const query = document.getElementById('searchQuery').value.trim();
+            if (!query) {
+                showError('Please enter a search query');
+                return;
+            }
+
+            const useIntelligentRouting = document.getElementById('useIntelligentRouting').checked;
+            let selectedTools = null;
+
+            // Only get selected tools if intelligent routing is disabled
+            if (!useIntelligentRouting) {
+                selectedTools = Array.from(document.querySelectorAll('.tool-option input[type="checkbox"]:checked'))
+                    .map(checkbox => checkbox.value);
+
+                if (selectedTools.length === 0) {
+                    showError('Please select at least one tool to use in manual mode');
+                    return;
+                }
+            }
+
+            // Show loading state
+            showLoading(true);
+            hideError();
+            hideResults();
+
+            try {
+                const requestBody = {
+                    query: query,
+                    use_intelligent_routing: useIntelligentRouting
+                };
+
+                // Only include tools if intelligent routing is disabled
+                if (!useIntelligentRouting && selectedTools) {
+                    requestBody.tools = selectedTools;
+                }
+
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    displayResults(data.data);
+                } else {
+                    showError(data.error || 'Search failed');
+                }
+            } catch (error) {
+                showError('Error performing search: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Display search results
+        function displayResults(data) {
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsQuery = document.getElementById('resultsQuery');
+            const resultsGrid = document.getElementById('resultsGrid');
+
+            // Display query and routing information
+            let queryText = `"${data.query}"`;
+            if (data.intelligent_routing && data.routing_decision) {
+                const intent = data.routing_decision.intent;
+                const confidence = Math.round(data.routing_decision.confidence * 100);
+                queryText += ` (AI routed to ${intent} tools - ${confidence}% confidence)`;
+            }
+            resultsQuery.innerHTML = queryText;
+
+            resultsGrid.innerHTML = '';
+
+            // Add routing analysis if available
+            if (data.intelligent_routing && data.routing_decision) {
+                const analysisCard = createRoutingAnalysisCard(data.routing_decision);
+                resultsGrid.appendChild(analysisCard);
+            }
+
+            if (data.results && data.results.length > 0) {
+                data.results.forEach(result => {
+                    const resultCard = createResultCard(result, data.intelligent_routing);
+                    resultsGrid.appendChild(resultCard);
+                });
+            } else {
+                resultsGrid.innerHTML = '<div class="no-results">No results found</div>';
+            }
+
+            showResults();
+        }
+
+        // Create routing analysis card
+        function createRoutingAnalysisCard(routingDecision) {
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            card.style.borderLeft = '4px solid #667eea';
+            card.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            card.style.color = 'white';
+
+            const confidence = Math.round(routingDecision.confidence * 100);
+            const intentEmoji = routingDecision.intent === 'database' ? '🗄️' : 
+                               routingDecision.intent === 'web' ? '🌐' : '🔄';
+
+            card.innerHTML = `
+                <div class="result-header">
+                    <span class="tool-badge" style="background: rgba(255,255,255,0.2); color: white;">
+                        AI Routing Analysis
+                    </span>
+                    <span class="status-badge success" style="background: rgba(255,255,255,0.2); color: white;">
+                        ${confidence}% Confidence
+                    </span>
+                </div>
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-top: 10px;">
+                    <p><strong>${intentEmoji} Intent:</strong> ${routingDecision.intent}</p>
+                    <p><strong>🎯 Reasoning:</strong> ${routingDecision.reasoning}</p>
+                    <p><strong>🔧 Recommended Tools:</strong> ${routingDecision.recommended_tools.join(', ')}</p>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Create a result card
+        function createResultCard(result, isIntelligentRouting = false) {
+            const card = document.createElement('div');
+            card.className = `result-card ${result.status}`;
+
+            let toolBadge = '';
+            let toolName = '';
+
+            if (isIntelligentRouting && result.tool_name === 'intelligent_agent') {
+                toolName = 'AI Agent';
+                toolBadge = '<span class="tool-badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">🧠 AI Agent</span>';
+            } else {
+                const toolInfo = availableTools.find(tool => tool.name === result.tool_name);
+                const toolType = toolInfo ? toolInfo.type : 'unknown';
+                toolName = formatToolName(result.tool_name);
+                toolBadge = `<span class="tool-badge ${toolType}">${toolName}</span>`;
+            }
+
+            card.innerHTML = `
+                <div class="result-header">
+                    ${toolBadge}
+                    <span class="status-badge ${result.status}">${result.status}</span>
+                </div>
+                <div class="result-content">${escapeHtml(result.result)}</div>
+            `;
+
+            return card;
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Show/hide loading state
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            const searchButton = document.getElementById('searchButton');
+            
+            loading.style.display = show ? 'block' : 'none';
+            searchButton.disabled = show;
+            searchButton.textContent = show ? 'Searching...' : 'Search Medical Resources';
+        }
+
+        // Show/hide error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // Show/hide results section
+        function showResults() {
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        function hideResults() {
+            document.getElementById('resultsSection').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
